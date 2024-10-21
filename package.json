@@ -1,0 +1,15 @@
+{
+  "name": "course_map_testing",
+  "version": "1.0.0",
+  "description": "testing",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "d3-dag": "^1.1.0",
+    "dagre-d3": "^0.6.4"
+  }
+}

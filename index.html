@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- d3.js library -->
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <!-- dagreD3.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre-d3/0.6.4/dagre-d3.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coursemap</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="sidebar">
+        <h2>Test Coursemap</h2>
+        <label for="course-subject">Filter for upto 3 course codes:</label>
+        <div class="dropdown">
+            <button id="dropdownButton">Select Subjects (0/3)</button>
+            <div id="dropdownContent" class="dropdown-content">
+              <!-- Options will be generated dynamically here -->
+            </div>
+        </div>
+        <label for="course-theme">Filter for a theme:</label>
+        <div class="dropdown-2">
+            <button id="dropdownButton-2">Select Theme</button>
+            <div id="dropdownContent-2" class="dropdown-content-2">
+              <!-- Options will be generated dynamically here -->
+            </div>
+        </div>
+        <div class="input-container">
+            <label for="course-subject">Filter by keywords:</label>
+            <input type="text" id="keywordInput" placeholder="Enter keywords separated by commas" />
+            <button id="searchButton">Search</button>    
+        </div>     
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin diam arcu, fringilla id volutpat in,
+           dictum vel orci. Suspendisse id maximus lacus. Morbi consequat enim a ex efficitur, ut vehicula odio finibus. 
+           Cras facilisis semper est vel accumsan. Morbi vitae tellus eget risus consequat dictum.</p>
+        <button id="resetButton">Reset Graph</button>
+    </div>
+    <div id="main">
+        <div id="dialog" style="display:none; position:fixed; background:white; border:1px solid black; padding:10px; z-index:1000;">
+            <h2 id="course-title"></h2>
+            <p id="course-description"></p>
+            <button id="close-dialog">Close</button>
+        </div>
+        <svg id="mySVG">
+            <defs>
+                <filter id="text-shadow">
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="2" />
+                    <feOffset dx="2" dy="2" result="offsetblur" />
+                    <feFlood flood-color="rgba(0, 0, 0, 0.3)" />
+                    <feComposite in2="offsetblur" operator="in" />
+                    <feMerge>
+                        <feMergeNode />
+                        <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                </filter>
+            </defs>
+        </svg>
+        <div id="legend">
+            <h3>Legend</h3>
+            
+            <!-- Prerequisite Chain -->
+            <div class="legend-item">
+                <svg width="50" height="20">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="black" />
+                        </marker>
+                    </defs>
+                    <line x1="0" y1="10" x2="30" y2="10" stroke="black" stroke-width="2" marker-end="url(#arrowhead)" />
+                </svg>
+                <span>Prerequisite Chain</span>
+            </div>
+        
+            <!-- Corequisite Chain -->
+            <div class="legend-item">
+                <svg width="50" height="20">
+                    <defs>
+                        <marker id="arrowhead-full-outline" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7, 0 0" fill="coral" />
+                        </marker>
+                    </defs>
+                    <line x1="0" y1="10" x2="30" y2="10" stroke="coral" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowhead-full-outline)" />
+                </svg>
+                <span>Corequisite Chain</span>
+            </div>
+
+            <!-- Cyan color for Course and Prerequisites -->
+            <div class="legend-item">
+                <svg width="50" height="20">
+                    <rect x="0" y="5" width="30" height="10" fill="#EEDFCC" />
+                </svg>
+                <span>Filtered courses</span>
+            </div>
+        
+            <!-- Cyan color for Course and Prerequisites -->
+            <div class="legend-item">
+                <svg width="50" height="20">
+                    <rect x="0" y="5" width="30" height="10" fill="cyan" />
+                </svg>
+                <span>Course and Prerequisites</span>
+            </div>
+        
+            <!-- Coral color for Corequisites -->
+            <div class="legend-item">
+                <svg width="50" height="20">
+                    <rect x="0" y="5" width="30" height="10" fill="coral" />
+                </svg>
+                <span>Corequisites</span>
+            </div>
+        </div>                
+    </div>
+
+    <script src="main_script.js"></script>
+</body>
+</html>
