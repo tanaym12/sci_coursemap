@@ -20,6 +20,9 @@ window.onresize = adjustSVGSize;
 d3.json('all_courses.json').then(coursesData => {
     const subjects = [...new Set(coursesData.map(course => course.course_code.slice(0, 4)))];
     const themes = [...new Set(coursesData.flatMap(course => course.themes))];
+    const levels = [...new Set(coursesData.map(course => course.course_code.slice(5,6)*100))]
+                    .sort((a, b) => a - b)
+                    .map(level => `${level} level`);
     
     const dropdownButton = document.getElementById("dropdownButton");
     const dropdownContent = document.getElementById("dropdownContent");
@@ -27,8 +30,12 @@ d3.json('all_courses.json').then(coursesData => {
     const themesDropdownButton = document.getElementById("dropdownButton-2");
     const themesDropdownContent = document.getElementById("dropdownContent-2");
 
+    const levelsDropdownButton = document.getElementById("dropdownButton-3");
+    const levelsDropdownContent = document.getElementById("dropdownContent-3");
+
     let selectedSubjects = [];
     let selectedThemes = [];
+    let selectedLevel = [];
 
     // Create initial message text in the SVG
     const svg = d3.select("svg");
@@ -66,7 +73,7 @@ d3.json('all_courses.json').then(coursesData => {
                 selectedSubjects = selectedSubjects.filter(subj => subj !== this.value);
             }
             dropdownButton.textContent = `Select Subjects (${selectedSubjects.length}/3)`;
-            updateGraph(selectedSubjects, selectedThemes); // Update graph based on selections
+            updateGraph(selectedSubjects, selectedThemes, selectedLevel); // Update graph based on selections
         });
 
         label.appendChild(checkbox);
@@ -104,13 +111,52 @@ d3.json('all_courses.json').then(coursesData => {
             }
 
             // Update the graph based on the new selection
-            updateGraph(selectedSubjects, selectedThemes);
+            updateGraph(selectedSubjects, selectedThemes, selectedLevel);
         });
 
         // Append the checkbox and label to the dropdown
         label.appendChild(checkbox);
         label.appendChild(document.createTextNode(theme));
         themesDropdownContent.appendChild(label);
+    });
+
+    // Populate the dropdown with checkbox options
+    levels.forEach(level => {
+        const label = document.createElement("label");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = level;
+
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                // Uncheck other checkboxes if this one is checked
+                const checkboxes = levelsDropdownContent.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => {
+                    if (cb !== this) {
+                        cb.checked = false; // Uncheck all other checkboxes
+                    }
+                });
+                // Update the selected theme
+                selectedLevel = [this.value]; // Set the selected theme
+            } else {
+                selectedLevel = []; // Clear selected theme
+            }
+
+            // Update button text based on selection
+            if (selectedLevel.length > 0) {
+                levelsDropdownButton.textContent = `Selected Level: ${selectedLevel[0]}`;
+            } else {
+                levelsDropdownButton.textContent = "Select Course Level"; // Reset button text when no theme is selected
+            }
+
+            // Update the graph based on the new selection
+            updateGraph(selectedSubjects, selectedThemes, selectedLevel);
+        });
+
+        // Append the checkbox and label to the dropdown
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(level));
+        levelsDropdownContent.appendChild(label);
     });
 
     // Toggle dropdown display
@@ -120,6 +166,10 @@ d3.json('all_courses.json').then(coursesData => {
 
     themesDropdownButton.addEventListener('click', function() {
         themesDropdownContent.classList.toggle("show");
+    });
+
+    levelsDropdownButton.addEventListener('click', function() {
+        levelsDropdownContent.classList.toggle("show");
     });
 
     // Close dropdown if clicked outside the button and content
@@ -138,6 +188,15 @@ d3.json('all_courses.json').then(coursesData => {
 
         if (!isClickInsideButton && !isClickInsideContent) {
             themesDropdownContent.classList.remove("show");
+        }
+    });
+
+    document.addEventListener('click', function(event) {
+        const isClickInsideButton = levelsDropdownButton.contains(event.target);
+        const isClickInsideContent = levelsDropdownContent.contains(event.target);
+
+        if (!isClickInsideButton && !isClickInsideContent) {
+            levelsDropdownContent.classList.remove("show");
         }
     });
 
@@ -312,12 +371,15 @@ d3.json('all_courses.json').then(coursesData => {
     }
 
     // Function to update the graph based on selected subjects and themes
-    function updateGraph(selectedSubjects, selectedThemes) {
+    function updateGraph(selectedSubjects, selectedThemes, selectedLevel) {
         // Ensure selectedSubjects and selectedThemes are arrays
         if (!Array.isArray(selectedSubjects)) {
             selectedSubjects = [];
         }
         if (!Array.isArray(selectedThemes)) {
+            selectedThemes = [];
+        }
+        if (!Array.isArray(selectedLevel)) {
             selectedThemes = [];
         }
 
@@ -326,7 +388,7 @@ d3.json('all_courses.json').then(coursesData => {
         g.edges().forEach(edge => g.removeEdge(edge.v, edge.w));
 
         // If no subjects or themes are selected, don't render the graph, show the initial message
-        if (selectedSubjects.length === 0 && selectedThemes.length === 0) {
+        if (selectedSubjects.length === 0 && selectedThemes.length === 0 && selectedLevel.length=== 0) {
             d3.select("svg g").remove(); // Clear the graph
             showInitialMessage(); // Show initial message or placeholder
             return; // Exit the function early
@@ -335,7 +397,8 @@ d3.json('all_courses.json').then(coursesData => {
         // Filter courses based on selected subjects and themes
         const filteredCourses = coursesData.filter(course =>
             (selectedSubjects.length === 0 || selectedSubjects.some(subject => course.course_code.startsWith(subject))) && // Filter by subjects
-            (selectedThemes.length === 0 || selectedThemes.some(theme => course.themes.includes(theme))) // Filter by themes
+            (selectedThemes.length === 0 || selectedThemes.some(theme => course.themes.includes(theme))) && // Filter by themes
+            (selectedLevel.length === 0 || selectedLevel.includes(`${course.course_code.charAt(5) * 100} level`))
         );
 
         // Set to track added nodes (to avoid duplicates)
@@ -438,8 +501,11 @@ d3.json('all_courses.json').then(coursesData => {
     document.getElementById("resetButton").addEventListener('click', function() {
         selectedSubjects = []; // Clear selected subjects
         selectedThemes = [];
+        selectedLevel = [];
         dropdownButton.textContent = `Select Subjects (0/3)`; // Update button text
         themesDropdownButton.textContent = 'Select Theme'
+        levelsDropdownButton.textContent = 'Select Course Level'
+
 
         // Uncheck all checkboxes in the dropdown
         const checkboxes = dropdownContent.querySelectorAll('input[type="checkbox"]');
@@ -452,13 +518,18 @@ d3.json('all_courses.json').then(coursesData => {
          checkboxes_2.forEach(checkbox => {
              checkbox.checked = false; // Uncheck each checkbox
          });
+
+         const checkboxes_3 = levelsDropdownContent.querySelectorAll('input[type="checkbox"]');
+         checkboxes_3.forEach(checkbox => {
+             checkbox.checked = false; // Uncheck each checkbox
+         });
         
         // Clear the input text box
         document.getElementById("keywordInput").value = ""; // Clear input text box
 
         document.getElementById("dialog").style.display = "none";
 
-        updateGraph(selectedSubjects, selectedThemes); // Reset graph
+        updateGraph(selectedSubjects, selectedThemes, selectedLevel); // Reset graph
 
         // Show the initial message again
         showInitialMessage(); // Call the function to show the message
