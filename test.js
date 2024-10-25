@@ -508,6 +508,16 @@ d3.json('all_courses.json').then(coursesData => {
     }    
 
     if (window.location.pathname.includes("index.html")) {
+
+        const dropdownButton = document.getElementById("dropdownButton");
+        const dropdownContent = document.getElementById("dropdownContent");
+
+        const themesDropdownButton = document.getElementById("dropdownButton-2");
+        const themesDropdownContent = document.getElementById("dropdownContent-2");
+
+        const levelsDropdownButton = document.getElementById("dropdownButton-3");
+        const levelsDropdownContent = document.getElementById("dropdownContent-3");
+        
     // Add event listener for reset button
         document.getElementById("resetButton").addEventListener('click', function() {
             selectedSubjects = []; // Clear selected subjects
