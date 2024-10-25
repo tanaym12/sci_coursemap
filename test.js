@@ -220,26 +220,6 @@ d3.json('all_courses.json').then(coursesData => {
         ranksep: 150
     });
 
-    // Helper function to recursively add prerequisites
-    function addPrerequisites(courseCode, allCourses, addedNodes, graph) {
-        const course = allCourses.find(c => c.course_code === courseCode);
-        if (!course || addedNodes.has(courseCode)) return; // Exit if course not found or already added
-
-        addedNodes.add(courseCode); // Mark this course as added
-        graph.setNode(courseCode, { label: courseCode, id: courseCode });
-
-        // Recursively add prerequisites
-        course.prerequisites.forEach(prereq => {
-            addPrerequisites(prereq, allCourses, addedNodes, graph);
-            graph.setEdge(prereq, courseCode, { label: "", id: courseCode+prereq, curve: d3.curveBasis, arrowheadStyle: "fill: #000"});
-        });
-
-        course.corequisites.forEach(coreq => {
-            addPrerequisites(coreq, allCourses, addedNodes, graph);
-            graph.setEdge(coreq, courseCode, { label: "", id: courseCode+coreq, style: "stroke: coral; stroke-dasharray: 5, 5;", curve: d3.curveBasis, arrowheadStyle: "fill: coral" });
-        });
-    }
-
     // Function to render the graph
     function renderGraph(filteredCourseIds) {
         // Hide the initial message when the graph is shown
