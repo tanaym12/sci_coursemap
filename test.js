@@ -401,20 +401,34 @@ d3.json('all_courses.json').then(coursesData => {
             (selectedLevel.length === 0 || selectedLevel.includes(`${course.course_code.charAt(5) * 100} level`))
         );
 
-        // Set to track added nodes (to avoid duplicates)
-        const addedNodes = new Set();
+        // Add filtered courses as nodes to the graph
+        filteredCourses.forEach(function(course) {
+            g.setNode(course.course_code, { label: course.course_code, id: course.course_code });
+        });
+
+        // Add prerequisite and corequisite edges between the nodes
+        filteredCourses.forEach(function(course) {
+            // Add prerequisites edges
+            if (course.prerequisites.length > 0) {
+                course.prerequisites.forEach(function(prereq) {
+                    if (filteredCourses.some(c => c.course_code === prereq)) {
+                        g.setEdge(prereq, course.course_code, { label: "", id: course.course_code+prereq, curve: d3.curveBasis, arrowheadStyle: "fill: #000" });
+                    }
+                });
+            }
+            // Add corequisites edges
+            if (course.corequisites.length > 0) {
+                course.corequisites.forEach(function(coreq) {
+                    if (filteredCourses.some(c => c.course_code === coreq)) {
+                        g.setEdge(coreq, course.course_code, { label: "", id: course.course_code+coreq, style: "stroke: coral; stroke-dasharray: 5, 5;",
+                                                            curve: d3.curveBasis, arrowheadStyle: "fill: coral" });
+                    }
+                });
+            }
+        });
 
         // Store filtered course IDs
         const filteredCourseIds = filteredCourses.map(course => course.course_code);
-
-        // Add filtered courses and their prerequisites as nodes to the graph
-        filteredCourses.forEach(course => {
-            // Add the course node and mark it as having a theme
-            g.setNode(course.course_code, { label: course.course_code, id: course.course_code });
-
-            // Add prerequisites recursively
-            addPrerequisites(course.course_code, coursesData, addedNodes, g);
-        });;
 
         // Clear previous graph rendering and render updated graph
         d3.select("svg g").remove();
