@@ -2,20 +2,32 @@ function adjustSVGSize() {
     const svg = document.getElementById("mySVG");
     const mainDiv = document.getElementById("main");
 
-    // Get main div dimensions
-    const mainWidth = mainDiv.clientWidth;
-    const mainHeight = mainDiv.clientHeight;
+    if (mainDiv) { // Check if the mainDiv exists
+        // Get main div dimensions
+        const mainWidth = mainDiv.clientWidth;
+        const mainHeight = mainDiv.clientHeight;
 
-    // Set SVG dimensions
-    svg.setAttribute("width", mainWidth);
-    svg.setAttribute("height", mainHeight);
+        // Set SVG dimensions
+        svg.setAttribute("width", mainWidth);
+        svg.setAttribute("height", mainHeight);
+    } else {
+        console.warn("Element with ID 'main' not found. SVG size adjustment will be skipped.");
+    }
 }
 
-// Call the function on page load
-window.onload = adjustSVGSize;
+if (window.location.pathname.includes("index.html")) {
+    // Call the function on page load
+    window.onload = adjustSVGSize;
 
-// Adjust SVG size on window resize
-window.onresize = adjustSVGSize;
+    // Adjust SVG size on window resize
+    window.onresize = adjustSVGSize;
+} else if (window.location.pathname.includes("redirect.html")) {
+    // You can add any specific logic for redirect.html here if needed
+    console.log("Currently on redirect.html. No SVG size adjustment required.");
+}
+
+// Create initial message text in the SVG
+const svg = d3.select("#mySVG");
 
 d3.json('all_courses.json').then(coursesData => {
     const subjects = [...new Set(coursesData.map(course => course.course_code.slice(0, 4)))];
@@ -23,189 +35,189 @@ d3.json('all_courses.json').then(coursesData => {
     const levels = [...new Set(coursesData.map(course => course.course_code.slice(5,6)*100))]
                     .sort((a, b) => a - b)
                     .map(level => `${level} level`);
-    
-    const dropdownButton = document.getElementById("dropdownButton");
-    const dropdownContent = document.getElementById("dropdownContent");
 
-    const themesDropdownButton = document.getElementById("dropdownButton-2");
-    const themesDropdownContent = document.getElementById("dropdownContent-2");
+    if (window.location.pathname.includes("index.html")) {
+        
+        const dropdownButton = document.getElementById("dropdownButton");
+        const dropdownContent = document.getElementById("dropdownContent");
 
-    const levelsDropdownButton = document.getElementById("dropdownButton-3");
-    const levelsDropdownContent = document.getElementById("dropdownContent-3");
+        const themesDropdownButton = document.getElementById("dropdownButton-2");
+        const themesDropdownContent = document.getElementById("dropdownContent-2");
 
-    let selectedSubjects = [];
-    let selectedThemes = [];
-    let selectedLevel = [];
+        const levelsDropdownButton = document.getElementById("dropdownButton-3");
+        const levelsDropdownContent = document.getElementById("dropdownContent-3");
 
-    // Create initial message text in the SVG
-    const svg = d3.select("svg");
+        let selectedSubjects = [];
+        let selectedThemes = [];
+        let selectedLevel = [];
 
-    // Set the initial message text
-    const initialMessage = svg.append("text")
-    .attr("id", "initialMessage")
-    .attr("x", "50%")                         // Position horizontally centered
-    .attr("y", "50%")                         // Position vertically centered
-    .attr("dy", ".35em")                      // Adjust vertical alignment
-    .attr("text-anchor", "middle")           // Center the text
-    .style("font-size", "60px")              // Font size
-    .style("fill", "#8B8378")                  // Text color
-    .style("pointer-events", "none")         // Prevent mouse events
-    .style("font-family", "Arial, sans-serif") // Use a more modern font
-    .style("font-weight", "bold") // Make the text bold
-    .style("filter", "url(#text-shadow)")
-    .text("Filter Courses from the sidebar"); // Initial message text
+        // Set the initial message text
+        const initialMessage = svg.append("text")
+        .attr("id", "initialMessage")
+        .attr("x", "50%")                         // Position horizontally centered
+        .attr("y", "50%")                         // Position vertically centered
+        .attr("dy", ".35em")                      // Adjust vertical alignment
+        .attr("text-anchor", "middle")           // Center the text
+        .style("font-size", "60px")              // Font size
+        .style("fill", "#8B8378")                  // Text color
+        .style("pointer-events", "none")         // Prevent mouse events
+        .style("font-family", "Arial, sans-serif") // Use a more modern font
+        .style("font-weight", "bold") // Make the text bold
+        .style("filter", "url(#text-shadow)")
+        .text("Filter Courses from the sidebar"); // Initial message text
 
-    // Populate the dropdown with checkbox options
-    subjects.forEach(subject => {
-        const label = document.createElement("label");
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.value = subject;
+        // Populate the dropdown with checkbox options
+        subjects.forEach(subject => {
+            const label = document.createElement("label");
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.value = subject;
 
-        checkbox.addEventListener('change', function() {
-            if (this.checked) {
-                if (selectedSubjects.length < 3) {
-                    selectedSubjects.push(this.value);
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    if (selectedSubjects.length < 3) {
+                        selectedSubjects.push(this.value);
+                    } else {
+                        this.checked = false; // Prevent more than 3 selections
+                    }
                 } else {
-                    this.checked = false; // Prevent more than 3 selections
+                    selectedSubjects = selectedSubjects.filter(subj => subj !== this.value);
                 }
-            } else {
-                selectedSubjects = selectedSubjects.filter(subj => subj !== this.value);
-            }
-            dropdownButton.textContent = `Select Subjects (${selectedSubjects.length}/3)`;
-            updateGraph(selectedSubjects, selectedThemes, selectedLevel); // Update graph based on selections
+                dropdownButton.textContent = `Select Subjects (${selectedSubjects.length}/3)`;
+                updateGraph(selectedSubjects, selectedThemes, selectedLevel); // Update graph based on selections
+            });
+
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(subject));
+            dropdownContent.appendChild(label);
         });
 
-        label.appendChild(checkbox);
-        label.appendChild(document.createTextNode(subject));
-        dropdownContent.appendChild(label);
-    });
+        // Populate the dropdown with checkbox options
+        themes.forEach(theme => {
+            const label = document.createElement("label");
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.value = theme;
 
-    // Populate the dropdown with checkbox options
-    themes.forEach(theme => {
-        const label = document.createElement("label");
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.value = theme;
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    // Uncheck other checkboxes if this one is checked
+                    const checkboxes = themesDropdownContent.querySelectorAll('input[type="checkbox"]');
+                    checkboxes.forEach(cb => {
+                        if (cb !== this) {
+                            cb.checked = false; // Uncheck all other checkboxes
+                        }
+                    });
+                    // Update the selected theme
+                    selectedThemes = [this.value]; // Set the selected theme
+                } else {
+                    selectedThemes = []; // Clear selected theme
+                }
 
-        checkbox.addEventListener('change', function() {
-            if (this.checked) {
-                // Uncheck other checkboxes if this one is checked
-                const checkboxes = themesDropdownContent.querySelectorAll('input[type="checkbox"]');
-                checkboxes.forEach(cb => {
-                    if (cb !== this) {
-                        cb.checked = false; // Uncheck all other checkboxes
-                    }
-                });
-                // Update the selected theme
-                selectedThemes = [this.value]; // Set the selected theme
-            } else {
-                selectedThemes = []; // Clear selected theme
-            }
+                // Update button text based on selection
+                if (selectedThemes.length > 0) {
+                    themesDropdownButton.textContent = `Selected Theme: ${selectedThemes[0]}`;
+                } else {
+                    themesDropdownButton.textContent = "Select Theme"; // Reset button text when no theme is selected
+                }
 
-            // Update button text based on selection
-            if (selectedThemes.length > 0) {
-                themesDropdownButton.textContent = `Selected Theme: ${selectedThemes[0]}`;
-            } else {
-                themesDropdownButton.textContent = "Select Theme"; // Reset button text when no theme is selected
-            }
+                // Update the graph based on the new selection
+                updateGraph(selectedSubjects, selectedThemes, selectedLevel);
+            });
 
-            // Update the graph based on the new selection
-            updateGraph(selectedSubjects, selectedThemes, selectedLevel);
+            // Append the checkbox and label to the dropdown
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(theme));
+            themesDropdownContent.appendChild(label);
         });
 
-        // Append the checkbox and label to the dropdown
-        label.appendChild(checkbox);
-        label.appendChild(document.createTextNode(theme));
-        themesDropdownContent.appendChild(label);
-    });
+        // Populate the dropdown with checkbox options
+        levels.forEach(level => {
+            const label = document.createElement("label");
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.value = level;
 
-    // Populate the dropdown with checkbox options
-    levels.forEach(level => {
-        const label = document.createElement("label");
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.value = level;
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    // Uncheck other checkboxes if this one is checked
+                    const checkboxes = levelsDropdownContent.querySelectorAll('input[type="checkbox"]');
+                    checkboxes.forEach(cb => {
+                        if (cb !== this) {
+                            cb.checked = false; // Uncheck all other checkboxes
+                        }
+                    });
+                    // Update the selected theme
+                    selectedLevel = [this.value]; // Set the selected theme
+                } else {
+                    selectedLevel = []; // Clear selected theme
+                }
 
-        checkbox.addEventListener('change', function() {
-            if (this.checked) {
-                // Uncheck other checkboxes if this one is checked
-                const checkboxes = levelsDropdownContent.querySelectorAll('input[type="checkbox"]');
-                checkboxes.forEach(cb => {
-                    if (cb !== this) {
-                        cb.checked = false; // Uncheck all other checkboxes
-                    }
-                });
-                // Update the selected theme
-                selectedLevel = [this.value]; // Set the selected theme
-            } else {
-                selectedLevel = []; // Clear selected theme
-            }
+                // Update button text based on selection
+                if (selectedLevel.length > 0) {
+                    levelsDropdownButton.textContent = `Selected Level: ${selectedLevel[0]}`;
+                } else {
+                    levelsDropdownButton.textContent = "Select Course Level"; // Reset button text when no theme is selected
+                }
 
-            // Update button text based on selection
-            if (selectedLevel.length > 0) {
-                levelsDropdownButton.textContent = `Selected Level: ${selectedLevel[0]}`;
-            } else {
-                levelsDropdownButton.textContent = "Select Course Level"; // Reset button text when no theme is selected
-            }
+                // Update the graph based on the new selection
+                updateGraph(selectedSubjects, selectedThemes, selectedLevel);
+            });
 
-            // Update the graph based on the new selection
-            updateGraph(selectedSubjects, selectedThemes, selectedLevel);
+            // Append the checkbox and label to the dropdown
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(level));
+            levelsDropdownContent.appendChild(label);
         });
 
-        // Append the checkbox and label to the dropdown
-        label.appendChild(checkbox);
-        label.appendChild(document.createTextNode(level));
-        levelsDropdownContent.appendChild(label);
-    });
+        // Toggle dropdown display
+        dropdownButton.addEventListener('click', function() {
+            dropdownContent.classList.toggle("show");
+        });
 
-    // Toggle dropdown display
-    dropdownButton.addEventListener('click', function() {
-        dropdownContent.classList.toggle("show");
-    });
+        themesDropdownButton.addEventListener('click', function() {
+            themesDropdownContent.classList.toggle("show");
+        });
 
-    themesDropdownButton.addEventListener('click', function() {
-        themesDropdownContent.classList.toggle("show");
-    });
+        levelsDropdownButton.addEventListener('click', function() {
+            levelsDropdownContent.classList.toggle("show");
+        });
 
-    levelsDropdownButton.addEventListener('click', function() {
-        levelsDropdownContent.classList.toggle("show");
-    });
+        // Close dropdown if clicked outside the button and content
+        document.addEventListener('click', function(event) {
+            const isClickInsideButton = dropdownButton.contains(event.target);
+            const isClickInsideContent = dropdownContent.contains(event.target);
 
-    // Close dropdown if clicked outside the button and content
-    document.addEventListener('click', function(event) {
-        const isClickInsideButton = dropdownButton.contains(event.target);
-        const isClickInsideContent = dropdownContent.contains(event.target);
+            if (!isClickInsideButton && !isClickInsideContent) {
+                dropdownContent.classList.remove("show");
+            }
+        });
 
-        if (!isClickInsideButton && !isClickInsideContent) {
-            dropdownContent.classList.remove("show");
-        }
-    });
+        document.addEventListener('click', function(event) {
+            const isClickInsideButton = themesDropdownButton.contains(event.target);
+            const isClickInsideContent = themesDropdownContent.contains(event.target);
 
-    document.addEventListener('click', function(event) {
-        const isClickInsideButton = themesDropdownButton.contains(event.target);
-        const isClickInsideContent = themesDropdownContent.contains(event.target);
+            if (!isClickInsideButton && !isClickInsideContent) {
+                themesDropdownContent.classList.remove("show");
+            }
+        });
 
-        if (!isClickInsideButton && !isClickInsideContent) {
-            themesDropdownContent.classList.remove("show");
-        }
-    });
+        document.addEventListener('click', function(event) {
+            const isClickInsideButton = levelsDropdownButton.contains(event.target);
+            const isClickInsideContent = levelsDropdownContent.contains(event.target);
 
-    document.addEventListener('click', function(event) {
-        const isClickInsideButton = levelsDropdownButton.contains(event.target);
-        const isClickInsideContent = levelsDropdownContent.contains(event.target);
-
-        if (!isClickInsideButton && !isClickInsideContent) {
-            levelsDropdownContent.classList.remove("show");
-        }
-    });
+            if (!isClickInsideButton && !isClickInsideContent) {
+                levelsDropdownContent.classList.remove("show");
+            }
+        });
+    }
 
     // Create a new directed graph
     var g = new dagreD3.graphlib.Graph().setGraph({
         rankdir: 'TB',
         nodesep: 10,
         edgesep: 0,
-        ranksep: 100
+        ranksep: 150
     });
 
     // Helper function to recursively add prerequisites
@@ -248,7 +260,7 @@ d3.json('all_courses.json').then(coursesData => {
         var render = new dagreD3.render();
         render(inner, g);
 
-        var initialScale = 0.85;
+        var initialScale = 0.7;
         var offset = 0;
         var graphWidth = g.graph().width || 0;  // Default to 0 if undefined
         var graphHeight = g.graph().height || 0;
@@ -266,9 +278,10 @@ d3.json('all_courses.json').then(coursesData => {
         inner.selectAll("g.node").on("click", function(event, d) {
             const course = coursesData.find(course => course.course_code === d);
             if (course) {
-                document.getElementById("course-title").innerText = course.course_code;
-                document.getElementById("course-description").innerText = course.description || "No description available.";
-                document.getElementById("dialog").style.display = "block";
+                // Optional: Store course information in local storage or pass it as query parameters if needed
+                localStorage.setItem("selectedCourse", JSON.stringify(course));
+                // Redirect to redirect.html
+                window.location.href = 'redirect.html';
             }
         });
 
@@ -449,41 +462,44 @@ d3.json('all_courses.json').then(coursesData => {
     }
 
     // Add event listener for the search button
-    document.getElementById("searchButton").addEventListener('click', function() {
-        const keywords = document.getElementById("keywordInput").value.trim(); // Trim whitespace
-        if (!keywords) return; // If the input is empty, do nothing
+    if (window.location.pathname.includes("index.html")) {
 
-        const filteredCourses = filterCoursesByKeywords(keywords);
+        document.getElementById("searchButton").addEventListener('click', function() {
+            const keywords = document.getElementById("keywordInput").value.trim(); // Trim whitespace
+            if (!keywords) return; // If the input is empty, do nothing
 
-        // Clear previous graph nodes and edges
-        g.nodes().forEach(node => g.removeNode(node));
-        g.edges().forEach(edge => g.removeEdge(edge.v, edge.w));
+            const filteredCourses = filterCoursesByKeywords(keywords);
 
-        // Add filtered courses to the graph
-        filteredCourses.forEach(function(course) {
-            g.setNode(course.course_code, { label: course.course_code, id: course.course_code });
+            // Clear previous graph nodes and edges
+            g.nodes().forEach(node => g.removeNode(node));
+            g.edges().forEach(edge => g.removeEdge(edge.v, edge.w));
+
+            // Add filtered courses to the graph
+            filteredCourses.forEach(function(course) {
+                g.setNode(course.course_code, { label: course.course_code, id: course.course_code });
+            });
+
+            filteredCourses.forEach(function(course) {
+                if (course.prerequisites.length > 0) {
+                    course.prerequisites.forEach(function(prereq) {
+                        if (filteredCourses.some(c => c.course_code === prereq)) {
+                            g.setEdge(prereq, course.course_code, { label: "", curve: d3.curveBasis, arrowheadStyle: "fill: #000" });
+                        }
+                    });
+                }
+                if (course.corequisites.length > 0) {
+                    course.corequisites.forEach(function(coreq) {
+                        if (filteredCourses.some(c => c.course_code === coreq)) {
+                            g.setEdge(coreq, course.course_code, { label: "", style: "stroke: coral; stroke-dasharray: 5, 5;", curve: d3.curveBasis, arrowheadStyle: "fill: coral" });
+                        }
+                    });
+                }
+            });
+
+            d3.select("svg g").remove(); // Remove previous graph
+            renderGraph(); // Render updated graph
         });
-
-        filteredCourses.forEach(function(course) {
-            if (course.prerequisites.length > 0) {
-                course.prerequisites.forEach(function(prereq) {
-                    if (filteredCourses.some(c => c.course_code === prereq)) {
-                        g.setEdge(prereq, course.course_code, { label: "", curve: d3.curveBasis, arrowheadStyle: "fill: #000" });
-                    }
-                });
-            }
-            if (course.corequisites.length > 0) {
-                course.corequisites.forEach(function(coreq) {
-                    if (filteredCourses.some(c => c.course_code === coreq)) {
-                        g.setEdge(coreq, course.course_code, { label: "", style: "stroke: coral; stroke-dasharray: 5, 5;", curve: d3.curveBasis, arrowheadStyle: "fill: coral" });
-                    }
-                });
-            }
-        });
-
-        d3.select("svg g").remove(); // Remove previous graph
-        renderGraph(); // Render updated graph
-    });
+    }
 
     function showInitialMessage() {
         const svg = d3.select("svg");
@@ -511,46 +527,48 @@ d3.json('all_courses.json').then(coursesData => {
         }
     }    
 
+    if (window.location.pathname.includes("index.html")) {
     // Add event listener for reset button
-    document.getElementById("resetButton").addEventListener('click', function() {
-        selectedSubjects = []; // Clear selected subjects
-        selectedThemes = [];
-        selectedLevel = [];
-        dropdownButton.textContent = `Select Subjects (0/3)`; // Update button text
-        themesDropdownButton.textContent = 'Select Theme'
-        levelsDropdownButton.textContent = 'Select Course Level'
+        document.getElementById("resetButton").addEventListener('click', function() {
+            selectedSubjects = []; // Clear selected subjects
+            selectedThemes = [];
+            selectedLevel = [];
+            dropdownButton.textContent = `Select Subjects (0/3)`; // Update button text
+            themesDropdownButton.textContent = 'Select Theme'
+            levelsDropdownButton.textContent = 'Select Course Level'
 
 
-        // Uncheck all checkboxes in the dropdown
-        const checkboxes = dropdownContent.querySelectorAll('input[type="checkbox"]');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = false; // Uncheck each checkbox
+            // Uncheck all checkboxes in the dropdown
+            const checkboxes = dropdownContent.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false; // Uncheck each checkbox
+            });
+
+            // Uncheck all checkboxes in the dropdown
+            const checkboxes_2 = themesDropdownContent.querySelectorAll('input[type="checkbox"]');
+            checkboxes_2.forEach(checkbox => {
+                checkbox.checked = false; // Uncheck each checkbox
+            });
+
+            const checkboxes_3 = levelsDropdownContent.querySelectorAll('input[type="checkbox"]');
+            checkboxes_3.forEach(checkbox => {
+                checkbox.checked = false; // Uncheck each checkbox
+            });
+            
+            // Clear the input text box
+            document.getElementById("keywordInput").value = ""; // Clear input text box
+
+            document.getElementById("dialog").style.display = "none";
+
+            updateGraph(selectedSubjects, selectedThemes, selectedLevel); // Reset graph
+
+            // Show the initial message again
+            showInitialMessage(); // Call the function to show the message
         });
 
-         // Uncheck all checkboxes in the dropdown
-         const checkboxes_2 = themesDropdownContent.querySelectorAll('input[type="checkbox"]');
-         checkboxes_2.forEach(checkbox => {
-             checkbox.checked = false; // Uncheck each checkbox
-         });
-
-         const checkboxes_3 = levelsDropdownContent.querySelectorAll('input[type="checkbox"]');
-         checkboxes_3.forEach(checkbox => {
-             checkbox.checked = false; // Uncheck each checkbox
-         });
-        
-        // Clear the input text box
-        document.getElementById("keywordInput").value = ""; // Clear input text box
-
-        document.getElementById("dialog").style.display = "none";
-
-        updateGraph(selectedSubjects, selectedThemes, selectedLevel); // Reset graph
-
-        // Show the initial message again
-        showInitialMessage(); // Call the function to show the message
-    });
-
-    document.getElementById("close-dialog").onclick = function() {
-        document.getElementById("dialog").style.display = "none";
-    };
+        document.getElementById("close-dialog").onclick = function() {
+            document.getElementById("dialog").style.display = "none";
+        };
+    }
 
 }).catch(error => console.error('Error loading the JSON:', error));

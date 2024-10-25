@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- d3.js library -->
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <!-- dagreD3.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre-d3/0.6.4/dagre-d3.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .node rect {
+            stroke: #333;
+            fill: #fff;
+        }
+
+        .edgePath path {
+            stroke: #333;
+            fill: none;
+            stroke-width: 1.5px;
+        }
+    </style>
+    <title>Redirect Page</title>
+</head>
+<body>
+    <div id="dialog" style="display:none; width: 30%; position:fixed; background:white; border:1px solid black; padding:10px; z-index:1000;">
+        <h2 id="course-title"></h2>
+        <p id="course-description"></p>
+        <button id="close-dialog">Close</button>
+    </div>
+    <div>
+        <svg id="secondSVG" width="1300" height="800" style="border: 1px solid black;"></svg>
+    </div>
+
+    <button onclick="window.location.href='index.html'" style="margin-top: 10px;">Go Back</button>   
+    <script src="test.js"></script> 
+    <script src="second.js"></script>
+    
+</body>
+</html>
