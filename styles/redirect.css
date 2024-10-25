@@ -1,0 +1,22 @@
+body {
+    font: 500 16px 'Helvetica Neue', Helvetica;
+}
+  
+.node rect {
+    stroke: #333;
+    fill: #fff;
+}
+  
+.edgePath path {
+    stroke: #333;
+    fill: none;
+    stroke-width: 1.5px;
+}
+  
+#dialog {
+    width: 300px;
+    height: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    margin: 15px;
+}

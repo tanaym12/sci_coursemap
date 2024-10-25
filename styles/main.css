@@ -1,0 +1,31 @@
+body {
+  font: 500 16px 'Helvetica Neue', Helvetica;
+  display: flex;
+  height: 100vh; /* Full height of viewport */
+  width: 100vw;  /* Full width of viewport */
+  overflow: hidden; /* Prevent scrolling for the entire body */
+}
+
+.node rect {
+  stroke: #333;
+  fill: #fff;
+}
+
+.edgePath path {
+  stroke: #333;
+  fill: none;
+  stroke-width: 1.5px;
+}
+
+#dialog {
+  width: 300px;
+  height: auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+}
+
+#main {
+  flex-grow: 1; /* Allow the main content area to take remaining space */
+  padding: 10px; /* Add some padding */
+  overflow: hidden; /* Prevent scrolling in the main area as well */
+}

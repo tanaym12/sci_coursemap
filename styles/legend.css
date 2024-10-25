@@ -1,0 +1,31 @@
+#legend {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    font-family: Arial, sans-serif;
+}
+  
+#legend h3 {
+    margin: 0;
+    font-size: 16px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+  
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+  
+.legend-item svg {
+    margin-right: 10px;
+}
+  
+.legend-item span {
+    font-size: 14px;
+}

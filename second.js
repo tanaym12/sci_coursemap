@@ -1,5 +1,5 @@
 const selectedCourse = JSON.parse(localStorage.getItem("selectedCourse"));
-console.log("Selected Course in redirect.html:", selectedCourse);
+console.log("Selected Course:", selectedCourse);
 
 d3.json('all_courses.json').then(coursesData => {
     const innerSVG = d3.select('#secondSVG');
@@ -61,8 +61,6 @@ d3.json('all_courses.json').then(coursesData => {
         });
     });
 
-    console.log(g_inner.edges());
-
     function renderGraph() {
         g_inner.nodes().forEach(v => {
             const node = g_inner.node(v);
@@ -76,7 +74,7 @@ d3.json('all_courses.json').then(coursesData => {
         const render = new dagreD3.render();
         render(inner, g_inner);
 
-        const initialScale = 0.8;
+        const initialScale = 0.7;
         const graphWidth = g_inner.graph().width || 0;
 
         innerSVG.call(zoom.transform, d3.zoomIdentity
