@@ -1,6 +1,5 @@
 #sidebar {
 width: 20vw; /* Set a fixed width for the sidebar */
-height: 100vh; /* Make sidebar full height of viewport */
 background-color: #f4f4f4; /* Light background for visibility */
 padding-right: 10px; /* Add some padding */
 padding-left: 15px;
