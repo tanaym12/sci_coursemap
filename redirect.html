@@ -11,18 +11,32 @@
     <title>Redirect Page</title>
 </head>
 <body>
-    <div id="dialog" style="display:none; width: 30%; position:fixed; background:white; border:1px solid black; padding:10px; z-index:1000;">
-        <h2 id="course-title"></h2>
-        <p id="course-description"></p>
-        <button id="close-dialog">Close</button>
-    </div>
-    <div>
-        <svg id="secondSVG" width="1300" height="800" style="border: 1px solid black;"></svg>
+    <!-- Title bar -->
+    <div id="title-bar">Course Visualization</div>
+
+    <!-- Content area with sidebar and main SVG section -->
+    <div id="content">
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <button id='return' onclick="window.location.href='index.html'">Go Back</button>
+        </div>
+
+        <!-- Main content area with SVG -->
+        <div id="main">
+            <div class="svg-wrapper">
+                <svg id="secondSVG" width="1200" height="800"></svg>
+            </div>
+            
+            <!-- Dialog box for course details -->
+            <div id="dialog">
+                <h2 id="course-title">Course Title</h2>
+                <p id="course-description">Course Description</p>
+                <button id="close-dialog">Close</button>
+            </div>
+        </div>
     </div>
 
-    <button onclick="window.location.href='index.html'" style="margin-top: 10px;">Go Back</button>   
-    <script src="test.js"></script> 
+    <script src="test.js"></script>
     <script src="second.js"></script>
-    
 </body>
 </html>

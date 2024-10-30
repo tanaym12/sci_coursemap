@@ -1,5 +1,21 @@
 body {
     font: 500 16px 'Helvetica Neue', Helvetica;
+    margin: 0;
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#title-bar {
+    width: 100%;
+    background-color: #1e7ed3;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    border-bottom: 2px solid black;
 }
   
 .node rect {
@@ -12,11 +28,67 @@ body {
     fill: none;
     stroke-width: 1.5px;
 }
-  
+
+#sidebar {
+    width: 20vw;
+    background-color: #f4f4f4; /* Light background for visibility */
+    padding: 15px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */
+    overflow: hidden; /* Prevent overflow in the sidebar */
+}
+
+#sidebar button {
+    width: 50%;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #1e7ed3;
+    color: white;
+    border: none;
+    border-radius: 8px;
+}
+
+#return:hover {
+    background-color: #0c589a;
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+#content {
+    display: flex;
+    flex: 1;
+}
+
+#main {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    align-items: center; /* Centers the svg-wrapper vertically */
+    justify-content: center; /* Centers the svg-wrapper horizontally */
+    background-color: #fafafa;
+    position: relative; /* Necessary for the dialog to be positioned absolutely within */
+}
+
+.svg-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Centers only the SVG within this wrapper */
+}
+
+svg {
+    border: 1px solid black;
+}
+
 #dialog {
-    width: 300px;
-    height: auto;
+    display: none;
+    width: 30%;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: white;
+    border: 1px solid black;
+    border-radius: 2%;
+    padding: 10px;
+    z-index: 1000;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-    margin: 15px;
 }
