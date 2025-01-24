@@ -18,6 +18,7 @@ window.onload = adjustSVGSize;
 window.onresize = adjustSVGSize;
 
 d3.json('all_courses.json').then(coursesData => {
+
     const subjects = [...new Set(coursesData.map(course => course.course_code.slice(0, 4)))];
     const themes = [...new Set(coursesData.flatMap(course => course.themes))];
     const levels = [...new Set(coursesData.map(course => course.course_code.slice(5,6)*100))]
@@ -203,43 +204,21 @@ d3.json('all_courses.json').then(coursesData => {
     // Create a new directed graph
     var g = new dagreD3.graphlib.Graph().setGraph({
         rankdir: 'TB',
-        nodesep: 10,
+        nodesep: 20,
         edgesep: 0,
         ranksep: 100
     });
 
-    // Helper function to recursively add prerequisites
-    function addPrerequisites(courseCode, allCourses, addedNodes, graph) {
-        const course = allCourses.find(c => c.course_code === courseCode);
-        if (!course || addedNodes.has(courseCode)) return; // Exit if course not found or already added
-
-        addedNodes.add(courseCode); // Mark this course as added
-        graph.setNode(courseCode, { label: courseCode, id: courseCode });
-
-        // Recursively add prerequisites
-        course.prerequisites.forEach(prereq => {
-            addPrerequisites(prereq, allCourses, addedNodes, graph);
-            graph.setEdge(prereq, courseCode, { label: "", id: courseCode+prereq, curve: d3.curveBasis, arrowheadStyle: "fill: #000"});
-        });
-
-        course.corequisites.forEach(coreq => {
-            addPrerequisites(coreq, allCourses, addedNodes, graph);
-            graph.setEdge(coreq, courseCode, { label: "", id: courseCode+coreq, style: "stroke: coral; stroke-dasharray: 5, 5;", curve: d3.curveBasis, arrowheadStyle: "fill: coral" });
-        });
-    }
-
-    // Function to render the graph
+    // Function to render the graph (updated to store filters in localStorage)
     function renderGraph(filteredCourseIds) {
-        // Hide the initial message when the graph is shown
         d3.select("#initialMessage").style("display", "none");
 
         g.nodes().forEach(function(v) {
             var node = g.node(v);
-            node.rx = node.ry = 100; // Rounded corners for nodes
+            node.rx = node.ry = 100;
         });
 
         var inner = svg.append("g");
-
         var zoom = d3.zoom().on("zoom", function(event) {
             inner.attr("transform", event.transform);
         });
@@ -248,9 +227,9 @@ d3.json('all_courses.json').then(coursesData => {
         var render = new dagreD3.render();
         render(inner, g);
 
-        var initialScale = 0.85;
+        var initialScale = 0.6;
         var offset = 0;
-        var graphWidth = g.graph().width || 0;  // Default to 0 if undefined
+        var graphWidth = g.graph().width || 0;
         var graphHeight = g.graph().height || 0;
 
         if (graphWidth > 0) {
@@ -259,16 +238,18 @@ d3.json('all_courses.json').then(coursesData => {
                 .scale(initialScale)
             );
         } else {
-            // Fallback positioning if the graph width is 0 or undefined
             svg.call(zoom.transform, d3.zoomIdentity.scale(initialScale));
         }
 
         inner.selectAll("g.node").on("click", function(event, d) {
+            console.log(d)
             const course = coursesData.find(course => course.course_code === d);
             if (course) {
-                document.getElementById("course-title").innerText = course.course_code;
-                document.getElementById("course-description").innerText = course.description || "No description available.";
-                document.getElementById("dialog").style.display = "block";
+                // Store the current filters in localStorage
+                localStorage.setItem('filters', JSON.stringify({ selectedSubjects, selectedThemes, selectedLevel }));
+                
+                // Redirect to the course details page with the course code as a URL parameter
+                window.location.href = `courseDetails.html?course_code=${d}`;
             }
         });
 
@@ -281,6 +262,7 @@ d3.json('all_courses.json').then(coursesData => {
         // Mouseover: make edges of prerequisites and corequisites higher opacity, others lower
         inner.selectAll("g.node").on("mouseover", function(event, d) {
             const course = coursesData.find(course => course.course_code === d);
+            console.log(course.course_code)
 
             // Make the hovered node bold and full opacity
             d3.select(this).select("rect").style("fill", function() {
@@ -302,10 +284,10 @@ d3.json('all_courses.json').then(coursesData => {
                     inner.select(`g.node[id="${prereq}"]`).style("opacity", 1);
 
                     // Make edge to prerequisite higher opacity
-                    inner.select(`g.edgePath[id*="${d+prereq}"]`).style("opacity", 1)
-                    .select("path")
-                    .style("stroke-width", "3px")
-                    .style("stroke", "black");
+                    inner.select(`g.edgePath[id*="${prereq}-${d}"]`).style("opacity", 1)
+                        .select("path")
+                        .style("stroke-width", "3px")
+                        .style("stroke", "black");
                 });
             }
 
@@ -316,12 +298,11 @@ d3.json('all_courses.json').then(coursesData => {
                     inner.select(`g.node[id="${coreq}"]`).select("text").style("font-weight", "bold");
                     inner.select(`g.node[id="${coreq}"]`).style("opacity", 1);
 
-                    // Make edge to corequisite higher opacity
-                    inner.select(`g.edgePath[id*="${d+coreq}"]`).style("opacity", 1)
-                    .select("path")
-                    .style("stroke-width", "3px")
-                    .style("stroke", "coral")
-                    .style("stroke-dasharray", "5, 5");
+                    inner.select(`g.edgePath[id*="${coreq}-${d}"]`).style("opacity", 1)
+                        .select("path")
+                        .style("stroke-width", "3px")
+                        .style("stroke", "coral")
+                        .style("stroke-dasharray", "5, 5");
                 });
             }
         });
@@ -348,10 +329,10 @@ d3.json('all_courses.json').then(coursesData => {
                         return filteredCourseIds.includes(prereq) ? "#EEDFCC" : null;
                     });
                     inner.select(`g.node[id="${prereq}"]`).select("text").style("font-weight", null);
-                    inner.select(`g.edgePath[id*="${d+prereq}"]`).style("opacity", 1)
-                    .select("path")
-                    .style("stroke-width", "1.5px")
-                    .style("stroke", "black");
+                    inner.select(`g.edgePath[id*="${prereq}-${d}"]`).style("opacity", 1)
+                        .select("path")
+                        .style("stroke-width", "1.5px")
+                        .style("stroke", "black");
                 });
 
                 // Reset styles for corequisites
@@ -360,65 +341,77 @@ d3.json('all_courses.json').then(coursesData => {
                         return filteredCourseIds.includes(coreq) ? "#EEDFCC" : null;
                     });
                     inner.select(`g.node[id="${coreq}"]`).select("text").style("font-weight", null);
-                    inner.select(`g.edgePath[id*="${d+coreq}"]`).style("opacity", 1)
-                    .select("path")
-                    .style("stroke-width", "1.5px")
-                    .style("stroke", "coral")
-                    .style("stroke-dasharray", "5, 5");
+                    inner.select(`g.edgePath[id*="${coreq}-${d}"]`).style("opacity", 1)
+                        .select("path")
+                        .style("stroke-width", "1.5px")
+                        .style("stroke", "coral")
+                        .style("stroke-dasharray", "5, 5");
                 });
             }
         });
     }
 
     // Function to update the graph based on selected subjects and themes
-    function updateGraph(selectedSubjects, selectedThemes, selectedLevel) {
-        // Ensure selectedSubjects and selectedThemes are arrays
-        if (!Array.isArray(selectedSubjects)) {
-            selectedSubjects = [];
-        }
-        if (!Array.isArray(selectedThemes)) {
-            selectedThemes = [];
-        }
-        if (!Array.isArray(selectedLevel)) {
-            selectedThemes = [];
-        }
-
-        // Clear existing nodes and edges from the graph
+     function updateGraph(selectedSubjects, selectedThemes, selectedLevel) {
+        if (!Array.isArray(selectedSubjects)) selectedSubjects = [];
+        if (!Array.isArray(selectedThemes)) selectedThemes = [];
+        if (!Array.isArray(selectedLevel)) selectedLevel = [];
+    
         g.nodes().forEach(node => g.removeNode(node));
         g.edges().forEach(edge => g.removeEdge(edge.v, edge.w));
-
-        // If no subjects or themes are selected, don't render the graph, show the initial message
-        if (selectedSubjects.length === 0 && selectedThemes.length === 0 && selectedLevel.length=== 0) {
-            d3.select("svg g").remove(); // Clear the graph
-            showInitialMessage(); // Show initial message or placeholder
-            return; // Exit the function early
+    
+        if (selectedSubjects.length === 0 && selectedThemes.length === 0 && selectedLevel.length === 0) {
+            d3.select("svg g").remove();
+            showInitialMessage();
+            return;
         }
-
-        // Filter courses based on selected subjects and themes
+    
         const filteredCourses = coursesData.filter(course =>
-            (selectedSubjects.length === 0 || selectedSubjects.some(subject => course.course_code.startsWith(subject))) && // Filter by subjects
-            (selectedThemes.length === 0 || selectedThemes.some(theme => course.themes.includes(theme))) && // Filter by themes
-            (selectedLevel.length === 0 || selectedLevel.includes(`${course.course_code.charAt(5) * 100} level`))
+            (selectedSubjects.length === 0 || selectedSubjects.some(subject => course.course_code.startsWith(subject))) &&
+            (selectedThemes.length === 0 || selectedThemes.some(theme => course.themes.includes(theme))) &&
+            (selectedLevel.length === 0 || selectedLevel.includes(`${course.course_code.charAt(5)}00 level`))
         );
-
-        // Set to track added nodes (to avoid duplicates)
+    
         const addedNodes = new Set();
-
-        // Store filtered course IDs
-        const filteredCourseIds = filteredCourses.map(course => course.course_code);
-
-        // Add filtered courses and their prerequisites as nodes to the graph
+    
         filteredCourses.forEach(course => {
-            // Add the course node and mark it as having a theme
-            g.setNode(course.course_code, { label: course.course_code, id: course.course_code });
-
-            // Add prerequisites recursively
-            addPrerequisites(course.course_code, coursesData, addedNodes, g);
-        });;
-
-        // Clear previous graph rendering and render updated graph
+            if (!addedNodes.has(course.course_code)) {
+                g.setNode(course.course_code, { label: course.course_code, id: course.course_code });
+                addedNodes.add(course.course_code);
+            }
+    
+            course.prerequisites.forEach(prereq => {
+                if (!addedNodes.has(prereq)) {
+                    g.setNode(prereq, { label: prereq, id: prereq });
+                    addedNodes.add(prereq);
+                }
+                g.setEdge(prereq, course.course_code, {
+                    label: "",
+                    id: `${prereq}-${course.course_code}`,
+                    curve: d3.curveBasis,
+                    arrowheadStyle: "fill: #000"
+                });
+            });
+    
+            course.corequisites.forEach(coreq => {
+                if (!addedNodes.has(coreq)) {
+                    g.setNode(coreq, { label: coreq, id: coreq });
+                    addedNodes.add(coreq);
+                }
+                g.setEdge(coreq, course.course_code, {
+                    label: "",
+                    id: `${coreq}-${course.course_code}`,
+                    style: "stroke: coral; stroke-dasharray: 5, 5;",
+                    curve: d3.curveBasis,
+                    arrowheadStyle: "fill: coral"
+                });
+            });
+        });
+    
+        const filteredCourseIds = filteredCourses.map(course => course.course_code);
+    
         d3.select("svg g").remove();
-        renderGraph(filteredCourseIds); // Pass filtered course IDs for color application
+        renderGraph(filteredCourseIds);
     }
 
     // Function to filter courses based on keywords in the description
