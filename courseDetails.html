@@ -34,6 +34,7 @@
 <body>
     <button id="backButton">Back to Course Graph</button>
     <h1 id="course-title"></h1>
+    <h2 id="course-name"></h2>
     <div id="course-description"></div>
     <div id="courseGraph"></div>
 
@@ -92,6 +93,7 @@
             if (course) {
                 // Set initial course title and description
                 document.getElementById("course-title").innerText = course.course_code;
+                document.getElementById("course-name").innerText = course.course_title;
                 document.getElementById("course-description").innerText = course.description || "No description available.";
                 
                 // Create the graph for the course's prerequisites and corequisites
@@ -194,6 +196,7 @@
                     if (clickedCourse) {
                         // Update course title and description for the clicked course
                         document.getElementById("course-title").innerText = clickedCourse.course_code;
+                        document.getElementById("course-name").innerText = clickedCourse.course_title;
                         document.getElementById("course-description").innerText = clickedCourse.description || "No description available.";
 
                         // Clear the current graph and create a new one for the clicked course
