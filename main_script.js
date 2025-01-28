@@ -204,9 +204,9 @@ d3.json('data_extract/data/all_courses_py.json').then(coursesData => {
     // Create a new directed graph
     var g = new dagreD3.graphlib.Graph().setGraph({
         rankdir: 'TB',
-        nodesep: 20,
+        nodesep: 30,
         edgesep: 0,
-        ranksep: 100
+        ranksep: 200
     });
 
     // Function to render the graph (updated to store filters in localStorage)
@@ -259,10 +259,27 @@ d3.json('data_extract/data/all_courses_py.json').then(coursesData => {
                 return filteredCourseIds.includes(d) ? "#EEDFCC" : null;
             });
 
+        // Create the tooltip div
+        var tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
+        // Simple function to style the tooltip for the given node.
+        var styleTooltip = function(name, description) {
+            return "<p class='name'>" + name + "</p><p class='description'>" + description + "</p>";
+        };
+
         // Mouseover: make edges of prerequisites and corequisites higher opacity, others lower
         inner.selectAll("g.node").on("mouseover", function(event, d) {
             const course = coursesData.find(course => course.course_code === d);
             console.log(course.course_code)
+
+            // Set tooltip content dynamically
+            tooltip.transition().duration(10).style("opacity", 1); // Show the tooltip
+            tooltip.html(`
+                <div class="title">${course.course_code}</div>
+                <div class="body">${styleTooltip(course.course_title, course.description)}</div>
+            `);
 
             // Make the hovered node bold and full opacity
             d3.select(this).select("rect").style("fill", function() {
@@ -305,11 +322,27 @@ d3.json('data_extract/data/all_courses_py.json').then(coursesData => {
                         .style("stroke-dasharray", "5, 5");
                 });
             }
+        })
+        .on("mousemove", function (event) {
+            // Position the tooltip relative to the viewport
+            const tooltipWidth = tooltip.node().offsetWidth;
+            const tooltipHeight = tooltip.node().offsetHeight;
+    
+            const x = event.clientX + 10; // Offset tooltip slightly from the cursor
+            const y = event.clientY + 10;
+    
+            // Prevent tooltip from going off-screen
+            const xPos = x + tooltipWidth > window.innerWidth ? x - tooltipWidth - 20 : x;
+            const yPos = y + tooltipHeight > window.innerHeight ? y - tooltipHeight - 20 : y;
+    
+            tooltip.style("left", xPos + "px").style("top", yPos + "px");
         });
 
         // Mouseout: reset styles for all nodes and edges
         inner.selectAll("g.node").on("mouseout", function(event, d) {
             const course = coursesData.find(course => course.course_code === d);
+
+            tooltip.transition().duration(10).style("opacity", 0); // Hide the tooltip
 
             // Reset hovered node style
             d3.select(this).select("rect").style("fill", function() {
