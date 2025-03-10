@@ -1,0 +1,217 @@
+<!-- courseDetails.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <!-- dagreD3.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre-d3/0.6.4/dagre-d3.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Details</title>
+    <style>
+        #backButton {
+            margin: 20px;
+            padding: 10px 20px;
+            background-color: #EEDFCC;
+            border: none;
+            cursor: pointer;
+        }
+        #course-description {
+            margin-top: 20px;
+        }
+        .node rect {
+        stroke: #333;
+        fill: #fff;
+        }
+
+        .edgePath path {
+        stroke: #333;
+        fill: none;
+        stroke-width: 1.5px;
+        }
+    </style>
+</head>
+<body>
+    <button id="backButton">Back to Course Graph</button>
+    <h1 id="course-title"></h1>
+    <h2 id="course-name"></h2>
+    <div id="course-description"></div>
+    <div id="courseGraph"></div>
+
+    <style>
+        /* Center everything in the body */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+        }
+
+        /* Title and description spacing */
+        #course-title {
+            margin-top: 20px;
+        }
+
+        #course-description {
+            margin: 10px 0;
+            font-size: 16px;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        /* Make courseGraph take full width and a part of the remaining height */
+        #courseGraph {
+            width: 80%;  /* Make the graph 80% of the page width */
+            height: 60vh; /* Use 60% of the screen height */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;  /* Space between description and graph */
+            background-color: #f7f7f7;  /* Optional: add a background color */
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Optional: add shadow for better appearance */
+        }
+    </style>
+
+    <script>
+        fetch('data_extract/data/all_courses_py.json')
+        .then(response => response.json())
+        .then(data => {
+            window.coursesData = data; // Store coursesData globally
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const courseCode = urlParams.get('course_code');
+
+            // Fetch or find course data using courseCode
+            let course = window.coursesData.find(c => c.course_code === courseCode);
+            console.log(course.course_code);
+
+            if (course) {
+                // Set initial course title and description
+                document.getElementById("course-title").innerText = course.course_code;
+                document.getElementById("course-name").innerText = course.course_title;
+                document.getElementById("course-description").innerText = course.description || "No description available.";
+                
+                // Create the graph for the course's prerequisites and corequisites
+                createCourseGraph(course);
+            }
+
+            // Create course graph (prerequisites and corequisites)
+            function createCourseGraph(course) {
+                var g = new dagreD3.graphlib.Graph().setGraph({
+                    rankdir: 'TB',
+                    nodesep: 20,
+                    edgesep: 0,
+                    ranksep: 100
+                });
+
+                g.setNode(course.course_code, { label: course.course_code, id: course.course_code });
+
+                course.prerequisites.forEach(prereq => {
+                    g.setNode(prereq, { label: prereq, id: prereq });
+                    g.setEdge(prereq, course.course_code, {
+                        label: "",
+                        id: `${prereq}-${course.course_code}`,
+                        curve: d3.curveBasis,
+                        arrowheadStyle: "fill: #000"
+                    });
+                });
+
+                course.corequisites.forEach(coreq => {
+                    g.setNode(coreq, { label: coreq, id: coreq });
+                    g.setEdge(coreq, course.course_code, {
+                        label: "",
+                        id: `${coreq}-${course.course_code}`,
+                        style: "stroke: coral; stroke-dasharray: 5, 5;",
+                        curve: d3.curveBasis,
+                        arrowheadStyle: "fill: coral"
+                    });
+                });
+
+                g.nodes().forEach(function(v) {
+                    var node = g.node(v);
+                    node.rx = node.ry = 100;
+                });
+
+                // Render the graph
+                const svg = d3.select("#courseGraph").append("svg")
+                    .attr("width", "100%")
+                    .attr("height", "100%"); // Make the SVG full width and height of the parent
+
+                const inner = svg.append("g");
+
+                const render = new dagreD3.render();
+                render(inner, g);
+
+                // Style nodes: white background and black edges
+                inner.selectAll("g.node").select("rect")
+                    .style("fill", "white")        // White background for nodes
+                    .style("stroke", "black")      // Black stroke (edge)
+                    .style("stroke-width", "2px"); // Optional: thicker black edges
+
+                // Add mouseover and mouseout event listeners
+                inner.selectAll("g.node")
+                    .on("mouseover", function(event, d) {
+                        // Bold the text
+                        d3.select(this).select("text")
+                            .style("font-weight", "bold");
+                        
+                        // Highlight connected edges
+                        const connectedEdges = g.edges().filter(edge => edge.w === d || edge.v === d);
+                        connectedEdges.forEach(edge => {
+                            const edgeId = `${edge.v}-${edge.w}`;
+                            inner.select(`#${edgeId}`)
+                                .style("stroke", "blue")
+                                .style("stroke-width", "3px");
+                        });
+                    })
+                    .on("mouseout", function(event, d) {
+                        // Revert text formatting
+                        d3.select(this).select("text")
+                            .style("font-weight", "normal");
+
+                        // Revert edge highlighting
+                        const connectedEdges = g.edges().filter(edge => edge.w === d || edge.v === d);
+                        connectedEdges.forEach(edge => {
+                            const edgeId = `${edge.v}-${edge.w}`;
+                            inner.select(`#${edgeId}`)
+                                .style("stroke", "")
+                                .style("stroke-width", "1px");
+                        });
+                    });
+
+                // Add click event listener to each node
+                inner.selectAll("g.node").on("click", function(event, d) {
+                    const clickedNode = g.node(d);
+                    const clickedCourseCode = clickedNode.label;
+                    console.log(`Node clicked: ${clickedCourseCode}`);
+
+                    // Find the course details based on clicked node (course)
+                    const clickedCourse = window.coursesData.find(c => c.course_code === clickedCourseCode);
+
+                    if (clickedCourse) {
+                        // Update course title and description for the clicked course
+                        document.getElementById("course-title").innerText = clickedCourse.course_code;
+                        document.getElementById("course-name").innerText = clickedCourse.course_title;
+                        document.getElementById("course-description").innerText = clickedCourse.description || "No description available.";
+
+                        // Clear the current graph and create a new one for the clicked course
+                        d3.select("#courseGraph").html(""); // Clear the graph container
+                        createCourseGraph(clickedCourse); // Create new graph for the clicked course
+                    }
+                });
+            }
+
+            // Back button functionality
+            document.getElementById("backButton").onclick = function () {
+                window.location.href = `index.html?filters=${encodeURIComponent(localStorage.getItem('filters'))}`;  // Use filters stored in localStorage
+            }
+        })
+        .catch(error => console.error('Error loading courses data:', error));
+    </script>
+</body>
+</html>
