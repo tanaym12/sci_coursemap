@@ -2,6 +2,7 @@
 
 ## Repository Structure
 
+```sh
 .
 ├── README.md               # Project overview and setup instructions
 ├── data_extract/           # Data files and preprocessing scripts
@@ -15,6 +16,7 @@
 ├── requirements.txt        # Python dependancies
 ├── package.json            # Project metadata and dependencies
 ├── package-lock.json       # Dependency lock file
+```
 
 ## Setup Instructions
 This repository contains both Python and Node.js components. Follow the steps below to set up your environment and run the project locally.
