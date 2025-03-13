@@ -1,5 +1,21 @@
 # Course Visualization Project
 
+## Repository Structure
+
+.
+├── README.md               # Project overview and setup instructions
+├── data_extract/           # Data files and preprocessing scripts
+│   ├── data/               # Contains course csv files and cleaned json file
+│   ├── data_extract.py     # Preprocessing
+├── older_scripts/          # JS testing scripts
+├── index.html              # Entry point
+├── courseDetails.html      # Secondary webpage
+├── main_scipt.js           # Primary javascript functionality for index.html
+├── style.css               # Styling for index.html
+├── requirements.txt        # Python dependancies
+├── package.json            # Project metadata and dependencies
+├── package-lock.json       # Dependency lock file
+
 ## Setup Instructions
 This repository contains both Python and Node.js components. Follow the steps below to set up your environment and run the project locally.
 
