@@ -385,66 +385,91 @@ d3.json('data_extract/data/all_courses_py.json').then(coursesData => {
     }
 
     // Function to update the graph based on selected subjects and themes
-     function updateGraph(selectedSubjects, selectedThemes, selectedLevel) {
-        if (!Array.isArray(selectedSubjects)) selectedSubjects = [];
-        if (!Array.isArray(selectedThemes)) selectedThemes = [];
-        if (!Array.isArray(selectedLevel)) selectedLevel = [];
+    function updateGraph(selectedSubjects, selectedThemes, selectedLevel) {
+        // Ensure input arrays are valid
+        selectedSubjects = ensureArray(selectedSubjects);
+        selectedThemes = ensureArray(selectedThemes);
+        selectedLevel = ensureArray(selectedLevel);
     
-        g.nodes().forEach(node => g.removeNode(node));
-        g.edges().forEach(edge => g.removeEdge(edge.v, edge.w));
+        // Clear existing graph
+        clearGraph();
     
-        if (selectedSubjects.length === 0 && selectedThemes.length === 0 && selectedLevel.length === 0) {
-            d3.select("svg g").remove();
+        // Show initial message if no filters are applied
+        if (areFiltersEmpty(selectedSubjects, selectedThemes, selectedLevel)) {
             showInitialMessage();
             return;
         }
     
-        const filteredCourses = coursesData.filter(course =>
-            (selectedSubjects.length === 0 || selectedSubjects.some(subject => course.course_code.startsWith(subject))) &&
-            (selectedThemes.length === 0 || selectedThemes.some(theme => course.themes.includes(theme))) &&
-            (selectedLevel.length === 0 || selectedLevel.includes(`${course.course_code.charAt(5)}00 level`))
-        );
+        // Filter courses based on selection criteria
+        const filteredCourses = filterCourses(selectedSubjects, selectedThemes, selectedLevel);
     
+        // Build graph with filtered courses
+        buildGraph(filteredCourses);
+    
+        // Render the updated graph
+        renderGraph(filteredCourses.map(course => course.course_code));
+    }
+    
+    // Helper functions
+    
+    function ensureArray(input) {
+        return Array.isArray(input) ? input : [];
+    }
+    
+    function clearGraph() {
+        g.nodes().forEach(node => g.removeNode(node));
+        g.edges().forEach(edge => g.removeEdge(edge.v, edge.w));
+        d3.select("svg g").remove();
+    }
+    
+    function areFiltersEmpty(subjects, themes, level) {
+        return subjects.length === 0 && themes.length === 0 && level.length === 0;
+    }
+    
+    function filterCourses(subjects, themes, level) {
+        return coursesData.filter(course =>
+            (subjects.length === 0 || subjects.some(subject => course.course_code.startsWith(subject))) &&
+            (themes.length === 0 || themes.some(theme => course.themes.includes(theme))) &&
+            (level.length === 0 || level.includes(`${course.course_code.charAt(5)}00 level`))
+        );
+    }
+    
+    function buildGraph(courses) {
         const addedNodes = new Set();
     
-        filteredCourses.forEach(course => {
-            if (!addedNodes.has(course.course_code)) {
-                g.setNode(course.course_code, { label: course.course_code, id: course.course_code });
-                addedNodes.add(course.course_code);
-            }
-    
+        courses.forEach(course => {
+            addNodeIfNotExists(course.course_code, addedNodes);
+            
             course.prerequisites.forEach(prereq => {
-                if (!addedNodes.has(prereq)) {
-                    g.setNode(prereq, { label: prereq, id: prereq });
-                    addedNodes.add(prereq);
-                }
-                g.setEdge(prereq, course.course_code, {
-                    label: "",
-                    id: `${prereq}-${course.course_code}`,
-                    curve: d3.curveBasis,
-                    arrowheadStyle: "fill: #000"
-                });
+                addNodeIfNotExists(prereq, addedNodes);
+                addEdge(prereq, course.course_code, 'prerequisite');
             });
     
             course.corequisites.forEach(coreq => {
-                if (!addedNodes.has(coreq)) {
-                    g.setNode(coreq, { label: coreq, id: coreq });
-                    addedNodes.add(coreq);
-                }
-                g.setEdge(coreq, course.course_code, {
-                    label: "",
-                    id: `${coreq}-${course.course_code}`,
-                    style: "stroke: coral; stroke-dasharray: 5, 5;",
-                    curve: d3.curveBasis,
-                    arrowheadStyle: "fill: coral"
-                });
+                addNodeIfNotExists(coreq, addedNodes);
+                addEdge(coreq, course.course_code, 'corequisite');
             });
         });
+    }
     
-        const filteredCourseIds = filteredCourses.map(course => course.course_code);
+    function addNodeIfNotExists(nodeId, addedNodes) {
+        if (!addedNodes.has(nodeId)) {
+            g.setNode(nodeId, { label: nodeId, id: nodeId });
+            addedNodes.add(nodeId);
+        }
+    }
     
-        d3.select("svg g").remove();
-        renderGraph(filteredCourseIds);
+    function addEdge(source, target, type) {
+        const edgeStyle = type === 'corequisite' 
+            ? { style: "stroke: coral; stroke-dasharray: 5, 5;", arrowheadStyle: "fill: coral" }
+            : { arrowheadStyle: "fill: #000" };
+    
+        g.setEdge(source, target, {
+            label: "",
+            id: `${source}-${target}`,
+            curve: d3.curveBasis,
+            ...edgeStyle
+        });
     }
 
     // Function to filter courses based on keywords in the description

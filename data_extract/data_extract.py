@@ -71,10 +71,10 @@ def extract_reqs(cleaned_df):
     course_description['coreqs'] = course_description['reqs'].apply(lambda x: extract_reqs_helper(x, 'Corequisite'))
 
     course_description['prereq_courses'] = course_description['prereqs'].apply(
-        lambda x: re.findall(r'[A-Z]{4}\s*\d{3}', str(x)) if isinstance(x, str) else []
+        lambda x: re.findall(r'[A-Z]{4}\s?\d{3}', str(x)) if isinstance(x, str) else []
     )
     course_description['coreq_courses'] = course_description['coreqs'].apply(
-        lambda x: re.findall(r'[A-Z]{4}\s*\d{3}', str(x)) if isinstance(x, str) else []
+        lambda x: re.findall(r'[A-Z]{4}\s?\d{3}', str(x)) if isinstance(x, str) else []
     )
 
     course_description.drop(columns=['prereqs', 'coreqs', 'reqs'], inplace=True)
